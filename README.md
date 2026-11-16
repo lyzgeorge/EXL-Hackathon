@@ -5,10 +5,7 @@ translates the model to Python (statsmodels), validates it against the baseline 
 delivers the code, environments, validation results and a final report.
 
 **Demo video:** 
-<video src="https://github.com/lyzgeorge/EXL-Hackathon/raw/refs/heads/main/video/export/R-Pythonizer_demo.mp4" controls></video>
-[`video/export/R-Pythonizer_demo.mp4`](video/export/R-Pythonizer_demo.mp4) (2:51), story and a
-live run on a real credit model. Script with sources: [`video/SCRIPT.md`](video/SCRIPT.md). Background for
-readers new to model risk: [`TEAM_BRIEFING.md`](TEAM_BRIEFING.md).
+https://github.com/user-attachments/assets/e1e48287-212d-4474-80fe-919fa69824da
 
 Status: all seven build steps of [`PLAN.md`](PLAN.md) are built: the workflow, stable R and Python environments,
 the four agents, validation, repair, the final report and deliverables, the React UI, restart recovery and
