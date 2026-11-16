@@ -4,7 +4,9 @@ An agentic platform that takes a data scientist's dataset and R model code, esta
 translates the model to Python (statsmodels), validates it against the baseline within agreed tolerances, and
 delivers the code, environments, validation results and a final report.
 
-**Demo video:** [`video/export/R-Pythonizer_demo.mp4`](video/export/R-Pythonizer_demo.mp4) (2:51), story and a
+**Demo video:** 
+<video src="video/export/R-Pythonizer_demo.mp4" controls></video>
+[`video/export/R-Pythonizer_demo.mp4`](video/export/R-Pythonizer_demo.mp4) (2:51), story and a
 live run on a real credit model. Script with sources: [`video/SCRIPT.md`](video/SCRIPT.md). Background for
 readers new to model risk: [`TEAM_BRIEFING.md`](TEAM_BRIEFING.md).
 
