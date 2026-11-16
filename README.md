@@ -5,7 +5,7 @@ translates the model to Python (statsmodels), validates it against the baseline 
 delivers the code, environments, validation results and a final report.
 
 **Demo video:** 
-<video src="video/export/R-Pythonizer_demo.mp4" controls></video>
+<video src="https://github.com/lyzgeorge/EXL-Hackathon/raw/refs/heads/main/video/export/R-Pythonizer_demo.mp4" controls></video>
 [`video/export/R-Pythonizer_demo.mp4`](video/export/R-Pythonizer_demo.mp4) (2:51), story and a
 live run on a real credit model. Script with sources: [`video/SCRIPT.md`](video/SCRIPT.md). Background for
 readers new to model risk: [`TEAM_BRIEFING.md`](TEAM_BRIEFING.md).
