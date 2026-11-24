@@ -17,9 +17,17 @@ const BAR = { pass: "bg-pass", warn: "bg-warn", fail: "bg-destructive", secondar
 function Progress({ state }: { state: ProjectState }) {
   const { done, total } = progress(state);
   return (
-    <span className="flex w-28 gap-0.5" role="progressbar" aria-valuenow={done} aria-valuemax={total}>
+    <span className="flex w-24 gap-0.5" role="progressbar" aria-valuenow={done} aria-valuemax={total}>
       {Array.from({ length: total }, (_, i) => (
-        <span key={i} className={cn("h-1.5 flex-1 rounded-full bg-border", i < done && "bg-pass", i === done && BAR[statusVariant(state)], i === done && state.status === "working" && "animate-pulse")} />
+        <span
+          key={i}
+          className={cn(
+            "h-1.5 flex-1 rounded-[2px] bg-[#E2E8F0]",
+            i < done && "bg-pass",
+            i === done && BAR[statusVariant(state)],
+            i === done && state.status === "working" && "animate-pulse",
+          )}
+        />
       ))}
     </span>
   );
@@ -31,31 +39,49 @@ export function Projects() {
   const empty = projects.data?.length === 0;
   const creating = opened || empty;
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-6">
+    <div className="mx-auto flex w-full max-w-[1140px] flex-col gap-5 px-6 py-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">Projects</h1>
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-base font-bold tracking-[-0.02em]">Projects</h1>
+          {projects.data && <Badge variant="secondary">{projects.data.length}</Badge>}
+        </div>
         {!creating && <Button onClick={() => setOpened(true)}><Plus />New project</Button>}
       </div>
       {creating && <NewProject onCancel={empty ? undefined : () => setOpened(false)} />}
       <ErrorText error={projects.error} />
       {projects.data && projects.data.length > 0 && (
-        <Card className="px-3 py-1">
+        <Card>
           <Table>
             <THead>
               <TR className="hover:bg-transparent">
-                <TH>Name</TH>
-                <TH>Step</TH>
+                <TH>Project</TH>
+                <TH>Pipeline</TH>
+                <TH>Spec</TH>
                 <TH>Status</TH>
-                <TH>Created</TH>
+                <TH className="text-right">Created</TH>
               </TR>
             </THead>
             <TBody>
               {projects.data.map((p) => (
                 <TR key={p.id} className="cursor-pointer" onClick={() => navigate(href.project(p.id))}>
-                  <TD className="py-3 font-medium"><a href={href.project(p.id)}>{p.name}</a></TD>
-                  <TD><span className="flex items-center gap-3"><Progress state={p.state} />{STEPS[p.state.step]}</span></TD>
+                  <TD className="py-3 font-semibold text-foreground">
+                    <a href={href.project(p.id)} className="hover:text-primary">{p.name}</a>
+                  </TD>
+                  <TD>
+                    <span className="flex items-center gap-3">
+                      <Progress state={p.state} />
+                      <span className="text-xs text-muted-foreground">{STEPS[p.state.step]}</span>
+                    </span>
+                  </TD>
+                  <TD>
+                    {p.state.spec_version ? (
+                      <Badge variant="default">v{p.state.spec_version}{p.state.spec_tier ? ` · ${p.state.spec_tier}` : ""}</Badge>
+                    ) : (
+                      <span className="font-mono text-xs text-muted-foreground">—</span>
+                    )}
+                  </TD>
                   <TD><Badge variant={statusVariant(p.state)}>{statusText(p.state)}</Badge></TD>
-                  <TD className="text-muted-foreground">{when(p.created_at)}</TD>
+                  <TD className="text-right font-mono text-xs text-muted-foreground">{when(p.created_at)}</TD>
                 </TR>
               ))}
             </TBody>
@@ -112,10 +138,10 @@ function NewProject({ onCancel }: { onCancel?: () => void }) {
             />
           </Label>
           {csvs.length > 1 && (
-            <fieldset className="flex flex-col gap-1 text-sm">
-              <legend className="mb-1 font-medium">Model dataset</legend>
+            <fieldset className="flex flex-col gap-1 text-xs">
+              <legend className="mb-1 font-semibold">Model dataset</legend>
               {csvs.map((f, i) => (
-                <label key={f.name} className="flex items-center gap-2">
+                <label key={f.name} className="flex items-center gap-2 font-mono">
                   <input type="radio" name="dataset_choice" checked={i === dataset} onChange={() => setDataset(i)} />
                   {f.name}
                 </label>

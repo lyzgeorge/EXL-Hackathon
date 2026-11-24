@@ -115,9 +115,9 @@ function Spec({ project, version }: StepProps & { version: number }) {
                 {rFiles.map((f) => <option key={f.name}>{f.name}</option>)}
               </Select>
             )}
-            <div className="flex rounded-md border p-0.5">
+            <div className="flex rounded-md border border-border bg-background p-0.5">
               {(["diff", "slice"] as const).map((v) => (
-                <button key={v} className={cn("rounded px-2 py-0.5 text-xs", view === v && "bg-muted font-medium")} onClick={() => setView(v)}>
+                <button key={v} className={cn("cursor-pointer rounded px-2 py-0.5 text-xs font-medium text-muted-foreground transition-colors", view === v && "bg-card font-semibold text-foreground shadow-[0_1px_2px_rgba(15,23,42,0.06)]")} onClick={() => setView(v)}>
                   {v === "diff" ? `against ${file}` : "slice"}
                 </button>
               ))}

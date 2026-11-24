@@ -43,9 +43,9 @@ export function Intake({ project }: StepProps) {
       <Panel
         title={profile.data ? `${profile.data.file} · ${num(profile.data.rows)} rows` : name}
         actions={csvs.length > 1 && (
-          <div className="flex rounded-md border p-0.5">
+          <div className="flex rounded-md border border-border bg-background p-0.5">
             {csvs.map((f) => (
-              <button key={f.name} className={cn("rounded px-2 py-0.5 text-xs", f.name === name && "bg-muted font-medium")} onClick={() => setName(f.name)}>
+              <button key={f.name} className={cn("cursor-pointer rounded px-2 py-0.5 text-xs font-medium text-muted-foreground transition-colors", f.name === name && "bg-card font-semibold text-foreground shadow-[0_1px_2px_rgba(15,23,42,0.06)]")} onClick={() => setName(f.name)}>
                 {f.name}
               </button>
             ))}

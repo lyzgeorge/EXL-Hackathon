@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, LoaderCircle, Minus, Repeat, X } from "lucide-react";
+import { Check, ChevronRight, LoaderCircle, Minus, Repeat, X } from "lucide-react";
 import type * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { ErrorText, Prose, RunLink } from "@/components/common";
@@ -54,67 +54,78 @@ export function ProjectPage({ pid, step }: { pid: string; step?: number }) {
     7: <Deliverables project={pr} rev={r} />,
   };
   return (
-    <div className="flex min-h-0 flex-1">
-      <Stepper project={pr} shown={shown} />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Header project={pr} />
-        <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 lg:p-6">
-            <div className="mx-auto flex max-w-6xl flex-col gap-5">
-              {s.step === shown && <JobBar project={pr} />}
-              {views[shown]}
-            </div>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <Header project={pr} />
+      <StepRibbon project={pr} shown={shown} />
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-5 lg:px-7">
+          <div className="mx-auto flex max-w-[1180px] flex-col gap-4">
+            {s.step === shown && <JobBar project={pr} />}
+            {views[shown]}
           </div>
-          {(chat || agent) && <Chat project={pr} rev={r} history={chat} />}
         </div>
+        {(chat || agent) && <Chat project={pr} rev={r} history={chat} />}
       </div>
     </div>
   );
 }
 
-function Stepper({ project, shown }: { project: Project; shown: Step }) {
+function StepRibbon({ project, shown }: { project: Project; shown: Step }) {
   const s = project.state;
   // Discrepancy Analysis is a loop off step 4: entered only when parity checks fail or the DS rejects the migration
   const looped = s.step === CONDITIONAL_STEP || s.repairs > 0 || s.diagnosis_id !== null;
   const steps = Object.keys(STEPS).map(Number) as Step[];
   return (
-    <nav className="w-14 shrink-0 overflow-y-auto border-r bg-card p-2 lg:w-64 lg:p-3">
-      <ol className="flex flex-col">
+    <nav className="shrink-0 overflow-x-auto border-b border-border bg-surface px-5 py-1.5">
+      <ol className="flex items-center gap-1">
         {steps.map((n, i) => {
           const loop = n === CONDITIONAL_STEP;
           const skipped = loop && !looped && s.step > n;
           const reached = n <= s.step && !skipped;
           const done = !skipped && (n < s.step || (n === s.step && s.status === "done"));
           const current = n === s.step && !done;
+          const active = shown === n;
           const tone = statusVariant(s);
-          const item = (
+
+          const pill = (
             <span
-              className={cn("flex items-start gap-3 rounded-md px-2 py-2 text-sm leading-6", reached && "hover:bg-muted/60", shown === n && "bg-muted font-medium", !reached && "text-muted-foreground/70")}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-md border border-transparent px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors",
+                reached && !active && "text-muted-foreground hover:bg-[#EEF2F6] hover:text-foreground",
+                !reached && "text-[#94A3B8]",
+                active && "border-[#BFDBFE] bg-card font-semibold text-primary shadow-[0_1px_2px_rgba(15,23,42,0.04)]",
+              )}
               title={loop ? "Runs only when parity checks fail or the migration is rejected, then returns to step 4" : STEPS[n]}
             >
               <span
                 className={cn(
-                  "relative z-10 grid size-6 shrink-0 place-items-center rounded-full border bg-card text-xs font-medium tabular-nums [&_svg]:size-3.5",
-                  loop && !reached && "border-dashed",
-                  done && "border-pass/40 bg-[color-mix(in_oklch,var(--pass)_12%,var(--card))] text-pass",
-                  current && tone === "secondary" && "border-primary text-primary",
+                  "grid size-[18px] shrink-0 place-items-center rounded-[4px] border font-mono text-[10px] font-semibold tabular-nums [&_svg]:size-3",
+                  !done && !current && !loop && "border-transparent bg-[#E2E8F0] text-muted-foreground",
+                  loop && !reached && "border-dashed border-border bg-card text-[#94A3B8]",
+                  loop && reached && !active && "border-dashed border-warn bg-[#FFFBEB] text-warn-foreground",
+                  done && !active && "border-[#A7F3D0] bg-[#ECFDF5] text-pass",
+                  current && tone === "secondary" && "border-primary bg-primary text-white",
                   current && tone === "warn" && "border-warn bg-warn text-white",
                   current && tone === "pass" && "border-pass bg-pass text-white",
                   current && tone === "fail" && "border-destructive bg-destructive text-white",
+                  active && !current && "border-primary bg-primary text-white",
                 )}
               >
                 {skipped ? <Minus /> : done ? <Check /> : current && s.status === "working" ? <LoaderCircle className="animate-spin" /> : loop ? <Repeat /> : n < CONDITIONAL_STEP ? n : n - 1}
               </span>
-              <span className="hidden min-w-0 lg:block">
-                {STEPS[n]}
-                {current && <span className={cn("block text-xs leading-4 font-normal", tone === "fail" ? "text-destructive" : tone === "warn" ? "text-warn-foreground" : tone === "pass" ? "text-pass" : "text-muted-foreground")}>{statusText(s)}</span>}
-              </span>
+              <span>{STEPS[n]}</span>
+              {loop && s.repairs > 0 && (
+                <span className="rounded bg-[#FFFBEB] px-1 font-mono text-[10px] text-warn-foreground">
+                  {s.repairs}
+                </span>
+              )}
             </span>
           );
+
           return (
-            <li key={n} className="relative">
-              {i < steps.length - 1 && <span className={cn("absolute top-8 -bottom-2 left-5 w-px -translate-x-1/2", done ? "bg-pass/40" : "bg-border")} />}
-              {reached ? <a href={href.project(project.id, n)} aria-current={shown === n ? "step" : undefined}>{item}</a> : item}
+            <li key={n} className="flex shrink-0 items-center gap-1">
+              {i > 0 && <ChevronRight className="size-3.5 shrink-0 text-[#CBD5E1]" />}
+              {reached ? <a href={href.project(project.id, n)} aria-current={active ? "step" : undefined}>{pill}</a> : pill}
             </li>
           );
         })}
@@ -127,12 +138,22 @@ function Header({ project }: { project: Project }) {
   const qc = useQueryClient();
   const s = project.state;
   const retry = useMutation({ mutationFn: () => post(p(project.id, "/retry")), onSuccess: () => qc.invalidateQueries({ queryKey: ["project", project.id] }) });
+  const tone = statusVariant(s);
   return (
-    <div className="flex h-14 shrink-0 items-center gap-3 border-b bg-card px-6">
-      <h1 className="font-semibold">{project.name}</h1>
-      <a href={href.project(project.id)}><Badge variant={statusVariant(s)}>{STEPS[s.step]} · {statusText(s)}</Badge></a>
-      {s.spec_version && <Badge variant="outline">Model Specification v{s.spec_version}{s.spec_tier ? ` · ${s.spec_tier} parity` : ""}</Badge>}
-      <div className="ml-auto flex items-center gap-3">
+    <div className="flex min-h-13 shrink-0 flex-wrap items-center gap-2.5 border-b border-border bg-card px-5 py-2">
+      <h1 className="text-[15px] font-bold tracking-[-0.02em] text-foreground">{project.name}</h1>
+      <a href={href.project(project.id)}>
+        <Badge variant={tone}>
+          <span className={cn("size-1.5 rounded-full bg-current", s.status === "working" && "animate-pulse")} />
+          {STEPS[s.step]} · {statusText(s)}
+        </Badge>
+      </a>
+      {s.spec_version && (
+        <Badge variant="default">
+          Spec v{s.spec_version}{s.spec_tier ? ` · ${s.spec_tier} parity` : ""}
+        </Badge>
+      )}
+      <div className="ml-auto flex items-center gap-2.5">
         <RunLink pid={project.id}>MLflow experiment</RunLink>
         {s.status === "awaiting_ds" && s.reason && RETRYABLE.includes(s.reason) && (
           <Button size="sm" onClick={() => retry.mutate()} disabled={retry.isPending}>Retry step</Button>
@@ -151,8 +172,14 @@ function JobBar({ project }: { project: Project }) {
   const s = project.state;
   if (!job) {
     if (s.status === "awaiting_ds" && s.detail && (s.reason === "step_failed" || s.reason === "interrupted" || s.reason === "cancelled" || s.reason === "retry_limit" || s.reason === "spec_change" || s.reason === "unsupported")) {
+      const severe = s.reason === "step_failed" || s.reason === "unsupported";
       return (
-        <div className={cn("rounded-lg border bg-card px-4 py-3 text-sm whitespace-pre-wrap shadow-xs", (s.reason === "step_failed" || s.reason === "unsupported") && "border-destructive/40 bg-[color-mix(in_oklch,var(--destructive)_5%,var(--card))]")}>
+        <div
+          className={cn(
+            "rounded-lg border bg-card px-4 py-3 text-[13px] whitespace-pre-wrap shadow-[0_1px_2px_rgba(15,23,42,0.03)]",
+            severe ? "border-[#FECDD3] border-l-[3px] border-l-destructive bg-[#FFF1F2]/60" : "border-[#FDE68A] border-l-[3px] border-l-warn bg-[#FFFBEB]/60",
+          )}
+        >
           {s.detail}
         </div>
       );
@@ -160,10 +187,10 @@ function JobBar({ project }: { project: Project }) {
     return null;
   }
   return (
-    <div className="rounded-lg border border-primary/30 bg-card px-4 py-3 shadow-xs">
-      <div className="flex items-center gap-3 text-sm">
+    <div className="rounded-lg border border-[#BFDBFE] border-l-[3px] border-l-primary bg-[#EFF6FF]/60 px-4 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+      <div className="flex items-center gap-2.5 text-[13px]">
         <LoaderCircle className="size-4 animate-spin text-primary" />
-        <span className="font-medium">{agent ? `${agent} is working` : JOB_LABELS[job.kind] ?? job.kind}</span>
+        <span className="font-semibold text-foreground">{agent ? `${agent} is working` : JOB_LABELS[job.kind] ?? job.kind}</span>
         <Button size="sm" variant="outline" className="ml-auto" disabled={cancel.isPending} onClick={() => cancel.mutate()}>Cancel</Button>
       </div>
       <ErrorText error={cancel.error} />
@@ -198,9 +225,15 @@ function Chat({ project, rev, history }: StepProps & { history: boolean }) {
   const shownMessages = history ? messages.data ?? [] : [];
   const open = s.status === "awaiting_ds" && [2, 3, 5].includes(s.step);
   return (
-    <aside className="flex h-72 shrink-0 flex-col border-t bg-card lg:h-auto lg:w-[22rem] lg:border-t-0 lg:border-l 2xl:w-[26rem]">
-      <div className="flex h-10 shrink-0 items-center border-b px-4 text-sm font-medium">{agent ?? "Analyst"}</div>
-      <div className="flex-1 space-y-3 overflow-y-auto p-4">
+    <aside className="flex h-72 shrink-0 flex-col border-t border-border bg-card lg:h-auto lg:w-[21.5rem] lg:border-t-0 lg:border-l 2xl:w-[24rem]">
+      <div className="flex h-11 shrink-0 items-center justify-between border-b border-border bg-surface px-3.5 text-[12.5px] font-semibold">
+        <span className="flex items-center gap-2">
+          <span className={cn("size-1.5 rounded-full", agent ? "animate-pulse bg-primary" : "bg-pass")} />
+          {agent ?? "Analyst"}
+        </span>
+        <Badge variant="secondary">{agent ? "streaming" : open ? "ready" : "idle"}</Badge>
+      </div>
+      <div className="flex-1 space-y-2.5 overflow-y-auto p-3.5">
         {shownMessages.map((m, i) => (
           <div key={m.seq} ref={i === shownMessages.length - 1 ? last : undefined}><Bubble author={m.author} text={m.text} /></div>
         ))}
@@ -213,7 +246,7 @@ function Chat({ project, rev, history }: StepProps & { history: boolean }) {
         <div ref={end} />
       </div>
       <form
-        className="flex flex-col gap-2 border-t p-3"
+        className="flex flex-col gap-2 border-t border-border bg-surface p-3"
         onSubmit={(e) => {
           e.preventDefault();
           if (text.trim()) send.mutate();
@@ -231,7 +264,9 @@ function Chat({ project, rev, history }: StepProps & { history: boolean }) {
         />
         <div className="flex items-center justify-between">
           <ErrorText error={send.error} />
-          <Button size="sm" type="submit" className="ml-auto" disabled={!open || !text.trim() || send.isPending}>Send<kbd className="font-sans text-xs opacity-70">⌘↵</kbd></Button>
+          <Button size="sm" type="submit" className="ml-auto" disabled={!open || !text.trim() || send.isPending}>
+            Send <kbd className="font-mono text-[10px] opacity-80">⌘↵</kbd>
+          </Button>
         </div>
       </form>
     </aside>
@@ -241,19 +276,35 @@ function Chat({ project, rev, history }: StepProps & { history: boolean }) {
 function ToolRow({ tool: t }: { tool: Extract<ActivityItem, { kind: "tool" }> }) {
   const Icon = t.error ? X : t.done ? Check : LoaderCircle;
   return (
-    <div className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
-      <Icon className={cn("size-3 shrink-0", t.error ? "text-destructive" : t.done ? "text-pass" : "animate-spin")} />
-      <span className="truncate font-mono">{t.name}</span>
+    <div className="flex items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1.5 font-mono text-[11px] text-muted-foreground">
+      <Icon className={cn("size-3 shrink-0", t.error ? "text-destructive" : t.done ? "text-pass" : "animate-spin text-primary")} />
+      <span className="truncate">{t.name}</span>
     </div>
   );
 }
 
 function Bubble({ author, text, pending }: { author: ChatMessage["author"]; text: string; pending?: boolean }) {
-  if (author === "platform") return <div className="rounded-md border border-dashed px-3 py-2 text-xs whitespace-pre-wrap text-muted-foreground">{text}</div>;
+  if (author === "platform") {
+    return (
+      <div className="rounded-md border border-dashed border-border bg-background px-3 py-2 font-mono text-[11px] whitespace-pre-wrap text-muted-foreground">
+        {text}
+      </div>
+    );
+  }
+  const isDs = author === "ds";
   return (
-    <div className={cn("flex", author === "ds" && "justify-end")}>
-      <div className={cn("min-w-0 rounded-lg px-3 py-2 text-sm", author === "ds" ? "max-w-[90%] bg-primary whitespace-pre-wrap text-primary-foreground" : "w-full bg-muted", pending && "opacity-70")}>
-        {author === "ds" ? text : <Prose markdown={text} />}
+    <div className={cn("flex", isDs && "justify-end")}>
+      <div
+        className={cn(
+          "min-w-0 rounded-lg border px-3 py-2 text-[12.5px]",
+          isDs ? "max-w-[92%] border-[#BFDBFE] bg-[#EFF6FF] whitespace-pre-wrap text-foreground" : "w-full border-border bg-surface text-foreground/90",
+          pending && "opacity-70",
+        )}
+      >
+        <div className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.04em] text-[#94A3B8]">
+          {isDs ? "Data Scientist" : "Agent"}
+        </div>
+        {isDs ? text : <Prose markdown={text} />}
       </div>
     </div>
   );

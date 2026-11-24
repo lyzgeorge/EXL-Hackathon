@@ -16,8 +16,8 @@ export function Settings() {
   const endpoints = useQuery({ queryKey: ["endpoints"], queryFn: () => get<Endpoint[]>("/api/settings/endpoints") });
   const [editing, setEditing] = useState<Endpoint | "new" | null>(null);
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-6">
-      <h1 className="text-lg font-semibold">Settings</h1>
+    <div className="mx-auto flex w-full max-w-[1140px] flex-col gap-5 px-6 py-6">
+      <h1 className="text-base font-bold tracking-[-0.02em]">Settings</h1>
       <Panel title="LLM endpoints" actions={editing === null && <Button size="sm" onClick={() => setEditing("new")}>Add endpoint</Button>}>
         <div className="flex flex-col gap-4">
           {editing !== null && <EndpointForm endpoint={editing === "new" ? null : editing} onDone={() => setEditing(null)} />}
@@ -58,16 +58,16 @@ function EndpointRow({ endpoint: e, onEdit }: { endpoint: Endpoint; onEdit: () =
   });
   return (
     <TR>
-      <TD className="font-medium">{e.name}</TD>
-      <TD>{e.api}</TD>
-      <TD className="max-w-60 truncate">{e.base_url}</TD>
-      <TD>{e.models.join(", ")}</TD>
+      <TD className="font-semibold">{e.name}</TD>
+      <TD><Badge variant="secondary">{e.api}</Badge></TD>
+      <TD className="max-w-60 truncate font-mono text-xs text-muted-foreground">{e.base_url}</TD>
+      <TD className="font-mono text-xs">{e.models.join(", ")}</TD>
       <TD>
         <div className="flex items-center justify-end gap-2">
           {test.data && <Badge variant={test.data.ok ? "pass" : "fail"} title={test.data.error ?? test.data.text}>{test.data.ok ? "connected" : "failed"}</Badge>}
           {test.error && <Badge variant="fail" title={String(test.error)}>failed</Badge>}
           {e.models.length > 1 && (
-            <Select className="h-8 w-36" value={model} onChange={(ev) => setModel(ev.target.value)}>
+            <Select className="h-7 w-36 text-xs" value={model} onChange={(ev) => setModel(ev.target.value)}>
               {e.models.map((m) => <option key={m}>{m}</option>)}
             </Select>
           )}
@@ -90,7 +90,7 @@ function EndpointForm({ endpoint, onDone }: { endpoint: Endpoint | null; onDone:
   });
   return (
     <form
-      className="grid gap-3 rounded-md border p-4 sm:grid-cols-2"
+      className="grid gap-3 rounded-lg border border-border bg-surface p-4 sm:grid-cols-2"
       onSubmit={(ev) => {
         ev.preventDefault();
         const f = new FormData(ev.currentTarget);
@@ -169,7 +169,7 @@ function RoleRow({ role, current, endpoints }: { role: Role; current: RoleModel 
   });
   return (
     <TR>
-      <TD className="font-medium capitalize">{role}</TD>
+      <TD className="font-semibold capitalize">{role}</TD>
       <TD>
         <Select value={v.endpoint_id} onChange={(e) => {
           const next = endpoints.find((x) => x.id === e.target.value);
@@ -201,7 +201,7 @@ function RoleRow({ role, current, endpoints }: { role: Role; current: RoleModel 
 
 function EnvironmentPanel() {
   const env = useQuery({ queryKey: ["environment"], queryFn: () => get<Environment>("/api/environment") });
-  const state = (s: string) => (s === "ready" ? <Badge variant="pass">ready</Badge> : <span className="text-destructive">{s}</span>);
+  const state = (s: string) => (s === "ready" ? <Badge variant="pass">ready</Badge> : <span className="font-mono text-xs text-destructive">{s}</span>);
   return (
     <Panel title="Environments">
       <ErrorText error={env.error} />
