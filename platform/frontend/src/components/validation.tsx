@@ -48,16 +48,37 @@ function shortCheckLabel(c: Check): string {
   const n = c.name.trim();
   const low = n.toLowerCase();
   if (low === "coefficients" || low === "coefficient estimates") return "Coef";
-  if (low === "standard errors" || low === "std_errors" || low === "std errors") return "Std.Err";
+  if (low.includes("standard error") || low === "std_errors" || low === "std errors") return "Std.Err";
   if (low.startsWith("predictions")) {
     const m = n.match(/\(([^)]+)\)/);
     return m ? `Pred (${m[1]})` : "Pred";
   }
-  if (low.includes("deviance")) return "Deviance";
-  if (low === "aic") return "AIC";
-  if (low === "bic") return "BIC";
-  if (low.includes("loglik") || low.includes("log_lik")) return "LogLik";
-  return n.length > 14 ? `${n.slice(0, 13)}…` : n;
+  if (low === "fit deviance") return "Deviance";
+  if (low === "fit null_deviance") return "Null Dev";
+  if (low === "fit dispersion") return "Dispersion";
+  if (low === "fit pearson_chi2") return "Pearson χ²";
+  if (low === "fit log_lik" || low === "loglik") return "LogLik";
+  if (low === "fit aic" || low === "aic") return "AIC";
+  if (low === "fit bic" || low === "bic") return "BIC";
+  const onSet = n.match(/^(.+?)\s+on\s+(\S+)$/i);
+  if (onSet) {
+    const metricMap: Record<string, string> = {
+      actual_expected: "A/E",
+      deviance: "Dev",
+      log_loss: "LogLoss",
+      brier: "Brier",
+      rmse: "RMSE",
+      mae: "MAE",
+      auc: "AUC",
+      gini: "Gini",
+      ks: "KS",
+    };
+    const raw = onSet[1].toLowerCase();
+    const label = metricMap[raw] ?? raw.replaceAll("_", " ");
+    const out = `${label} (${onSet[2]})`;
+    return out.length > 15 ? `${out.slice(0, 14)}…` : out;
+  }
+  return n.length > 15 ? `${n.slice(0, 14)}…` : n;
 }
 
 /** Compact 4-column ML telemetry KPI strip derived from recorded validation evidence. */
